@@ -5,7 +5,6 @@ import styled from "styled-components";
 
 function App() {
 	const [username, setUsername] = useState<string | null>(null);
-	const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 
 	const handleLogout = () => {
 		setUsername(null);
@@ -23,7 +22,7 @@ function App() {
 					Logout
 				</button>
 			</UsernameDisplayContainer>
-			<Chat username={username} serverUrl={SERVER_URL} />
+			<Chat username={username} />
 		</div>
 	);
 }

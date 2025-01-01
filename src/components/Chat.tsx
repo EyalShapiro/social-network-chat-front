@@ -6,16 +6,16 @@ import { useChatSocket } from "../hook/useChatSocket";
 
 interface ChatProps {
 	username: string;
-	serverUrl: string;
 }
 
-export default function Chat({ username, serverUrl }: ChatProps) {
+export default function Chat({ username }: ChatProps) {
 	const [input, setInput] = useState("");
-	const { messages, sendMessage } = useChatSocket(serverUrl);
+	const { messages, sendMessage } = useChatSocket();
 
 	const handleSendMessage = () => {
 		if (input.trim()) {
-			sendMessage({ sender: username, message: input });
+			const newMsg = { sender: username, message: input };
+			sendMessage(newMsg);
 			setInput("");
 		}
 	};
@@ -30,20 +30,22 @@ export default function Chat({ username, serverUrl }: ChatProps) {
 	return (
 		<ChatContainer>
 			<MessagesContainer aria-live="polite">
-				{messages.map((msg, index) => (
-					<Message key={index} $isUserMessage={msg.sender === username}>
-						<div className="msgHeader">
-							<span className="sender">{msg.sender}</span>
-						</div>
-						<p dir="auto" className="message">
-							{msg.message}
-						</p>
-						<div className="msgFooter">
-							<div style={{ flexGrow: 1 }} />
-							<span className="created"> {moment(msg.created_at).format("MM/DD/YYYY, HH:mm:ss")}</span>
-						</div>
-					</Message>
-				))}
+				{messages &&
+					messages?.length > 0 &&
+					messages.map((msg, index) => (
+						<Message key={index} $isUserMessage={msg.sender === username}>
+							<div className="msgHeader">
+								<span className="sender">{msg.sender}</span>
+							</div>
+							<p dir="auto" className="message">
+								{msg.message}
+							</p>
+							<div className="msgFooter">
+								<div style={{ flexGrow: 1 }} />
+								<span className="created"> {moment(msg.created_at).format("MM/DD/YYYY, HH:mm:ss")}</span>
+							</div>
+						</Message>
+					))}
 			</MessagesContainer>
 			<InputContainer>
 				<textarea
