@@ -8,7 +8,7 @@ interface ChatProps {
 	username: string;
 }
 
-export default function Chat({ username }: ChatProps) {
+export default function ViewMsgChat({ username }: ChatProps) {
 	const [input, setInput] = useState("");
 	const { messages, sendMessage } = useChatSocket();
 
