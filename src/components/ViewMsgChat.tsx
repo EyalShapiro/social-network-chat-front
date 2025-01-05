@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import moment from "moment";
 import styled from "styled-components";
 
 import { useChatSocket } from "../hook/useChatSocket";
+import { Loading } from "./Loading/Loading";
 
 interface ChatProps {
 	username: string;
@@ -10,7 +11,15 @@ interface ChatProps {
 
 export default function ViewMsgChat({ username }: ChatProps) {
 	const [input, setInput] = useState("");
-	const { messages, sendMessage } = useChatSocket();
+	const { messages, sendMessage, loadMoreMessages, hasMore, isLoading } = useChatSocket();
+	const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (messagesContainerRef.current) {
+			messagesContainerRef.current.scrollIntoView({ behavior: "smooth" });
+			messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+		}
+	}, [messages]);
 
 	const handleSendMessage = () => {
 		if (input.trim()) {
@@ -26,27 +35,40 @@ export default function ViewMsgChat({ username }: ChatProps) {
 			handleSendMessage();
 		}
 	};
-
+	const handleScroll = () => {
+		const container = messagesContainerRef.current;
+		if (container) {
+			if (container.scrollTop <= 5 && hasMore) {
+				loadMoreMessages();
+			} else if (container.scrollHeight - container.scrollTop === container.clientHeight && hasMore) {
+				loadMoreMessages();
+			}
+		}
+	};
 	return (
 		<ChatContainer>
-			<MessagesContainer aria-live="polite">
-				{messages &&
-					messages?.length > 0 &&
-					messages.map((msg, index) => (
-						<Message key={index} $isUserMessage={msg.sender === username}>
-							<div className="msgHeader">
-								<span className="sender">{msg.sender}</span>
-							</div>
-							<p dir="auto" className="message">
-								{msg.message}
-							</p>
-							<div className="msgFooter">
-								<div style={{ flexGrow: 1 }} />
-								<span className="created"> {moment(msg.created_at).format("MM/DD/YYYY, HH:mm:ss")}</span>
-							</div>
-						</Message>
-					))}
-			</MessagesContainer>
+			{isLoading ? (
+				<Loading />
+			) : (
+				<MessagesContainer aria-live="polite" ref={messagesContainerRef} onScroll={handleScroll}>
+					{messages?.length > 0 &&
+						messages.map((msg, index) => (
+							<Message key={index} $isUserMessage={msg.sender === username}>
+								<div className="msgHeader" dir="rtl">
+									<span className="sender">{msg.sender}</span>
+								</div>
+								<p dir="auto" className="message">
+									{msg.message}
+								</p>
+								<div className="msgFooter">
+									<div style={{ flexGrow: 1 }} />
+									<span className="created"> {moment(msg.created_at).format("MM/DD/YYYY, HH:mm:ss")}</span>
+								</div>
+							</Message>
+						))}
+				</MessagesContainer>
+			)}
+
 			<InputContainer>
 				<textarea
 					className="inputMsg"
@@ -56,7 +78,9 @@ export default function ViewMsgChat({ username }: ChatProps) {
 					placeholder="Type a message"
 					aria-label="Type your message"
 				/>
-				<SendButton onClick={handleSendMessage}>Send</SendButton>
+				<button className="SendButton" onClick={handleSendMessage}>
+					Send
+				</button>
 			</InputContainer>
 		</ChatContainer>
 	);
@@ -65,6 +89,7 @@ export default function ViewMsgChat({ username }: ChatProps) {
 const ChatContainer = styled.div`
 	min-width: 600px;
 	margin: 0 auto;
+
 	padding: 5px;
 	border-radius: 10px;
 	box-shadow: 0 5px 10px rgba(0, 0, 10, 0.1);
@@ -80,27 +105,31 @@ const ChatContainer = styled.div`
 
 const MessagesContainer = styled.div`
 	display: flex;
-	gap: 1px;
+	gap: 0.5rem;
+	margin: 0.5rem 0.75rem;
+	padding: 0.125rem;
 	flex-direction: column;
 	overflow-y: auto;
 	flex-grow: 1;
-	margin-bottom: 20px;
-	padding-bottom: 60px; /* Ensure space for the input field */
+	overflow-x: hidden;
+
+	@media (max-width: 768px) {
+		overflow-x: auto;
+	}
 `;
 
 const Message = styled.div<{ $isUserMessage: boolean }>`
 	direction: ${({ $isUserMessage }) => ($isUserMessage ? "rtl" : "ltr")};
 	width: fit-content;
 	min-width: 70%;
+	max-width: 95%;
 	align-self: ${({ $isUserMessage }) => ($isUserMessage ? "flex-end" : "flex-start")};
-	padding: 10px;
-	margin: 5px;
+	padding: 0.5rem;
 	background-color: ${({ $isUserMessage }) => ($isUserMessage ? "#d4f8d4" : "#e3f2fd")};
 	color: ${({ $isUserMessage }) => ($isUserMessage ? "green" : "blue")};
 	border-radius: 5px;
 	max-width: 70%;
 	& .msgHeader {
-		direction: rtl;
 		display: flex;
 		align-items: center;
 		width: 100%;
@@ -128,11 +157,11 @@ const Message = styled.div<{ $isUserMessage: boolean }>`
 
 const InputContainer = styled.div`
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 10px;
-	border-top: 1px solid #ccc;
 	width: 100%;
+	padding: 4px 0.25rem;
+	justify-content: space-around;
+	align-items: center;
+	border-top: 1px solid #ccc;
 	& .inputMsg {
 		width: 80%;
 		padding: 10px;
@@ -145,17 +174,17 @@ const InputContainer = styled.div`
 		resize: none;
 		min-height: 40px;
 	}
-`;
+	.SendButton {
+		padding: 10px 20px;
+		margin: 1px;
+		background-color: #007bff;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
 
-const SendButton = styled.button`
-	padding: 10px 20px;
-	background-color: #007bff;
-	color: white;
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
-
-	&:hover {
-		background-color: #0056b3;
+		&:hover {
+			background-color: #0056b3;
+		}
 	}
 `;

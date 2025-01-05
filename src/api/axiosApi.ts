@@ -33,7 +33,7 @@ apiClient.interceptors.response.use(
 	}
 );
 
-export const getAllItems = async <T = unknown>(endpoint: string, config?: AxiosRequestConfig): Promise<T> => {
+export const getItems = async <T = unknown>(endpoint: string, config?: AxiosRequestConfig): Promise<T> => {
 	try {
 		const response = await apiClient.get<T>(`/${endpoint}`, config);
 		return response.data;
@@ -87,6 +87,23 @@ export const deleteItem = async (endpoint: string, id: number): AxiosPromise => 
 	try {
 		const response = await apiClient.delete(`/${endpoint}/${id}`);
 		return response;
+	} catch (error) {
+		throw handleApiError(error);
+	}
+};
+export const getItemsWithPagination = async <T = unknown>(
+	endpoint: string,
+	page: number,
+	limit: number = 100,
+	config?: AxiosRequestConfig
+): Promise<T> => {
+	try {
+		const configApi = {
+			...config,
+			params: { page, limit, ...(config?.params || {}) },
+		};
+		const response = await apiClient.get<T>(`/${endpoint}`, configApi);
+		return response.data;
 	} catch (error) {
 		throw handleApiError(error);
 	}

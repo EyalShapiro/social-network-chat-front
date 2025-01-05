@@ -15,7 +15,7 @@
 
 body {
 	background-color: rgba(50, 80, 80, 0.6);
-
+	scroll-behavior: smooth;
 	margin: 0;
 	display: flex;
 	place-items: center;
@@ -35,4 +35,25 @@ body {
 	button {
 		background-color: #f9f9f9;
 	}
+}
+/* Demonstrate a "mostly customized" scrollbar
+ * (won't be visible otherwise if width/height is specified) */
+*::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+	border-radius: 0.25rem;
+	background: grey;
+}
+
+/* Add a thumb */
+*::-webkit-scrollbar-thumb {
+	background: #000;
+	border-radius: 0.25rem;
+	border: 0.5px solid #123524;
+}
+*::-webkit-scrollbar-thumb {
+	background: #123524cc;
+}
+*::-webkit-scrollbar-thumb:hover {
+	background: #123524;
 }
