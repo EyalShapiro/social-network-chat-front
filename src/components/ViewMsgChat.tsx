@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import moment from "moment";
 import styled from "styled-components";
-
 import { useChatSocket } from "../hook/useChatSocket";
 import { Loading } from "./Loading/Loading";
 
+// change to https://mantine.dev/hooks/use-intersection/
+// use Infinity scroll and add itm to the top of the list
 interface ChatProps {
 	username: string;
 }
@@ -13,6 +14,7 @@ export default function ViewMsgChat({ username }: ChatProps) {
 	const [input, setInput] = useState("");
 	const { messages, sendMessage, loadMoreMessages, hasMore, isLoading } = useChatSocket();
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
+	const scrollPositionRef = useRef(0);
 
 	useEffect(() => {
 		if (messagesContainerRef.current) {
@@ -37,14 +39,19 @@ export default function ViewMsgChat({ username }: ChatProps) {
 	};
 	const handleScroll = () => {
 		const container = messagesContainerRef.current;
-		if (container) {
-			if (container.scrollTop <= 5 && hasMore) {
-				loadMoreMessages();
-			} else if (container.scrollHeight - container.scrollTop === container.clientHeight && hasMore) {
-				loadMoreMessages();
-			}
+		if (container && container.scrollTop <= 50 && hasMore) {
+			const previousScrollHeight = container.scrollHeight;
+			loadMoreMessages().then(() => {
+				const newScrollHeight = container.scrollHeight;
+				container.scrollTop = newScrollHeight - previousScrollHeight;
+			});
 		}
 	};
+
+	useEffect(() => {
+		const container = messagesContainerRef.current;
+		if (container) container.scrollTop = container.scrollHeight - scrollPositionRef.current;
+	}, [messages]);
 	return (
 		<ChatContainer>
 			{isLoading ? (

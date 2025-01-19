@@ -4,15 +4,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 
 import { MessageDataType } from "../types/MessageDataType";
 import { socket } from "../api/socket";
-import { getItemsWithPagination } from "../api/axiosApi";
-import { MESSAGES_PAGINATED_TABLE } from "../constants/tableName";
-
-type PaginatedMessagesType = {
-	messages: MessageDataType[];
-	totalCount: number;
-	page: number;
-	limit: number;
-};
+import { getMessagesByPage, sendChatMessage } from "@/api/ChatMessage/function";
 
 type QueryDataType = {
 	pages: {
@@ -28,30 +20,14 @@ export const useChatSocket = () => {
 	// Setup infinite query for messages
 	const { data, fetchNextPage, hasNextPage, isFetching, isLoading, refetch } = useInfiniteQuery({
 		queryKey: ["messages"],
-		queryFn: async ({ pageParam = 1 }) => {
-			const response = await getItemsWithPagination<PaginatedMessagesType>(
-				MESSAGES_PAGINATED_TABLE,
-				pageParam,
-				limitGetItems
-			);
-			return {
-				messages: response.messages,
-				nextPage: response.messages.length === limitGetItems ? pageParam + 1 : undefined,
-			};
-		},
+		queryFn: () => getMessagesByPage(limitGetItems, { pageParam: 1 }),
 		getNextPageParam: (lastPage) => lastPage.nextPage,
 		initialPageParam: 1,
 	});
 
 	// Mutation for sending messages
 	const { mutate: sendMessage } = useMutation({
-		mutationFn: async (msg: MessageDataType) => {
-			if (!socket.connected) {
-				throw new Error("Socket not connected");
-			}
-			socket.emit("chat message", msg);
-			return msg;
-		},
+		mutationFn: (msg: MessageDataType) => sendChatMessage(msg),
 		onError: (err) => {
 			console.error("Error sending message:", err);
 			toast.error("Error sending message check your internet connection");
@@ -61,14 +37,9 @@ export const useChatSocket = () => {
 	// Socket event listener for new messages
 	useEffect(() => {
 		const handleMessage = (msg: MessageDataType) => {
-			queryClient.setQueryData(["messages"], (oldData: QueryDataType | undefined) => ({
+			queryClient.setQueryData(["messages"], (oldData: QueryDataType) => ({
 				...oldData,
-				pages: oldData?.pages.map((page, idx) =>
-					idx === oldData.pages.length - 1 ? { ...page, messages: [...page.messages, msg] } : page
-				),
-				onError: () => {
-					toast.error("Error get message reload the page and check your internet connection");
-				},
+				pages: oldData?.pages.map((page, idx) => (idx === 0 ? { ...page, messages: [msg, ...page.messages] } : page)),
 			}));
 		};
 
