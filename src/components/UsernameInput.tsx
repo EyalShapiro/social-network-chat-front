@@ -15,15 +15,13 @@ const UsernameInput = () => {
 	const navigate = useNavigate();
 
 	const handleRegister = () => {
-		const trimmedName = name.trim();
-
-		if (!trimmedName) {
+		if (!name.trim()) {
 			// Display an error message or provide visual feedback for empty input
 			new Error("Please enter your username.");
-			return;
+			return null;
 		}
 
-		updateUserName(trimmedName);
+		updateUserName(name.trim());
 		navigate("/chat");
 	};
 

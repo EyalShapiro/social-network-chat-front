@@ -10,3 +10,21 @@ export const updateUserName = (name: string) => {
 export const removeUserName = () => {
 	localStorage.removeItem(USER_NAME_KEY);
 };
+
+export const clearLocalStorage = () => {
+	localStorage.clear();
+};
+export const getAllLocalStorage = () => {
+	const localStorageData: Record<string, string> = {};
+	Object.keys(localStorage).forEach((key) => {
+		localStorageData[key] = localStorage.getItem(key) || "";
+	});
+	return localStorageData;
+};
+export const fetchItem = (key: string) => {
+	try {
+		localStorage.getItem(key);
+	} catch {
+		return "";
+	}
+};

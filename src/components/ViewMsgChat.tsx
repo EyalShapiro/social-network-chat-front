@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import moment from "moment";
 import styled from "styled-components";
 import { useChatSocket } from "../hook/useChatSocket";
 import { Loading } from "./Loading/Loading";
+import { formattersOptions, FormatOptionType } from "./formatText/formattersOptions";
 
 // change to https://mantine.dev/hooks/use-intersection/
 // use Infinity scroll and add itm to the top of the list
@@ -11,10 +12,10 @@ interface ChatProps {
 }
 
 export default function ViewMsgChat({ username }: ChatProps) {
-	const [input, setInput] = useState("");
 	const { messages, sendMessage, loadMoreMessages, hasMore, isLoading } = useChatSocket();
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 	const scrollPositionRef = useRef(0);
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	useEffect(() => {
 		if (messagesContainerRef.current) {
@@ -23,33 +24,73 @@ export default function ViewMsgChat({ username }: ChatProps) {
 		}
 	}, [messages]);
 
-	const handleSendMessage = () => {
-		if (input.trim()) {
-			const newMsg = { sender: username, message: input };
-			sendMessage(newMsg);
-			setInput("");
-		}
+	const getSelectedText = () => {
+		const textareaElemnt = textareaRef.current;
+		const selectionStartIndex = textareaElemnt?.selectionStart ?? 0;
+		const selectionEndIndex = textareaElemnt?.selectionEnd ?? 0;
+		const selectedText = textareaElemnt?.value?.substring(selectionStartIndex, selectionEndIndex) || undefined;
+		return { selectionStartIndex, selectionEndIndex, selectedText };
 	};
+
+	function handleFormat(char: string) {
+		if (!textareaRef.current) return;
+		const { selectionStartIndex, selectionEndIndex, selectedText } = getSelectedText();
+		if (selectedText) {
+			const formattedText = `${char}${selectedText}${char}`;
+			const updatedText =
+				textareaRef.current.value.substring(0, selectionStartIndex) +
+				formattedText +
+				textareaRef.current.value.substring(selectionEndIndex);
+			textareaRef.current.value = updatedText; // Update the textarea value directly
+			const cursorPosition = selectionStartIndex + formattedText.length;
+			setTimeout(() => {
+				textareaRef.current?.setSelectionRange(cursorPosition, cursorPosition);
+			}, 0);
+		}
+	}
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleSendMessage();
+		} else if (textareaRef.current && getSelectedText().selectedText) {
+			const findKeyFormat = formattersOptions.find((option: FormatOptionType) => option.keyboardCharEvent === e.key);
+			if (findKeyFormat) {
+				e.preventDefault();
+				handleFormat(findKeyFormat.charFormt);
+			}
+			const pressedKey = e.code.toLowerCase().replace(/^key/, "");
+			if (!pressedKey) return;
+			const findCtrlKeyFormat = formattersOptions.find(
+				(option: FormatOptionType) => option.ctrlKeyEvent === pressedKey
+			);
+			if (e.ctrlKey && findCtrlKeyFormat) {
+				e.preventDefault();
+				handleFormat(findCtrlKeyFormat.charFormt);
+			}
 		}
 	};
+
+	const handleSendMessage = () => {
+		const message = textareaRef.current?.value?.trim() || "";
+		if (textareaRef?.current?.value && message) {
+			sendMessage({ sender: username, message });
+			textareaRef.current.value = "";
+		}
+	};
+
 	const handleScroll = () => {
 		const container = messagesContainerRef.current;
 		if (container && container.scrollTop <= 50 && hasMore) {
 			const previousScrollHeight = container.scrollHeight;
-			loadMoreMessages().then(() => {
-				const newScrollHeight = container.scrollHeight;
-				container.scrollTop = newScrollHeight - previousScrollHeight;
-			});
+			loadMoreMessages();
+			const newScrollHeight = container.scrollHeight;
+			container.scrollTop = newScrollHeight - previousScrollHeight;
 		}
 	};
 
 	useEffect(() => {
-		const container = messagesContainerRef.current;
+		const container = messagesContainerRef?.current;
 		if (container) container.scrollTop = container.scrollHeight - scrollPositionRef.current;
 	}, [messages]);
 	return (
@@ -79,8 +120,7 @@ export default function ViewMsgChat({ username }: ChatProps) {
 			<InputContainer>
 				<textarea
 					className="inputMsg"
-					value={input}
-					onChange={(e) => setInput(e.target.value)}
+					ref={textareaRef}
 					onKeyDown={handleKeyDown}
 					placeholder="Type a message"
 					aria-label="Type your message"
@@ -89,6 +129,23 @@ export default function ViewMsgChat({ username }: ChatProps) {
 					Send
 				</button>
 			</InputContainer>
+			<div style={{ display: "flex", gap: "4px", margin: "4px 0" }}>
+				<button className="btn" onClick={() => handleFormat("**")}>
+					Bold
+				</button>
+				<button className="btn" onClick={() => handleFormat("_")}>
+					Italic
+				</button>
+				<button className="btn" onClick={() => handleFormat("~")}>
+					Strike
+				</button>
+				<button className="btn" onClick={() => handleFormat("==")}>
+					Mark
+				</button>
+				<button className="btn" onClick={() => handleFormat("__")}>
+					Underline
+				</button>
+			</div>
 		</ChatContainer>
 	);
 }
@@ -96,7 +153,6 @@ export default function ViewMsgChat({ username }: ChatProps) {
 const ChatContainer = styled.div`
 	min-width: 600px;
 	margin: 0 auto;
-
 	padding: 5px;
 	border-radius: 10px;
 	box-shadow: 0 5px 10px rgba(0, 0, 10, 0.1);
@@ -104,7 +160,6 @@ const ChatContainer = styled.div`
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
-
 	background-color: darkslategray;
 	width: 60vw;
 	height: 80vh;

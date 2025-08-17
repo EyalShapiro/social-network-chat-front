@@ -1,13 +1,12 @@
 import { MessageDataType } from "@/types/MessageDataType";
 import { socket } from "../socket";
-import { getItemsWithPagination } from "../axiosApi";
-import { MESSAGES_PAGINATED_TABLE } from "@/constants/tableName";
+import axiosInstance from "../axiosInstance";
 
 export async function sendChatMessage(msg: MessageDataType) {
 	if (!socket.connected) {
 		throw new Error("Socket not connected");
 	}
-	socket.emit("chat message", msg);
+	socket.emit("message", msg);
 	return msg;
 }
 type PaginatedMessagesType = {
@@ -17,13 +16,13 @@ type PaginatedMessagesType = {
 	limit: number;
 };
 export async function getMessagesByPage(limitGetItems: number, { pageParam = 1 }) {
-	const response = await getItemsWithPagination<PaginatedMessagesType>(
-		MESSAGES_PAGINATED_TABLE,
-		pageParam,
-		limitGetItems
-	);
+	const configApi = {
+		params: { page: pageParam, limit: limitGetItems },
+	};
+	const response = await axiosInstance.get<PaginatedMessagesType>(`messages/paginated`, configApi);
+	const { messages } = response.data;
 	return {
-		messages: response.messages,
-		nextPage: response.messages.length === limitGetItems ? pageParam + 1 : undefined,
+		messages: messages,
+		nextPage: messages.length === limitGetItems ? pageParam + 1 : undefined,
 	};
 }

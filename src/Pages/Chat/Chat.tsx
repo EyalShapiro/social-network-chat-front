@@ -7,7 +7,10 @@ export default function Chat() {
 	const navigate = useNavigate();
 
 	const userName = getUserName();
-
+	if (!userName) {
+		navigate("/");
+		return null;
+	}
 	const handleLogout = () => {
 		removeUserName();
 		navigate("/");

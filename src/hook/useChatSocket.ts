@@ -1,10 +1,9 @@
-import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { MessageDataType } from "../types/MessageDataType";
-import { socket } from "../api/socket";
 import { getMessagesByPage, sendChatMessage } from "@/api/ChatMessage/function";
+import { useEffect } from "react";
+import { socket } from "@/api/socket";
 
 type QueryDataType = {
 	pages: {
@@ -27,25 +26,35 @@ export const useChatSocket = () => {
 
 	// Mutation for sending messages
 	const { mutate: sendMessage } = useMutation({
-		mutationFn: (msg: MessageDataType) => sendChatMessage(msg),
+		mutationFn: (msg: MessageDataType) => {
+			queryClient.invalidateQueries({ queryKey: ["messages"] }); //todo:customize
+			return sendChatMessage(msg);
+		},
 		onError: (err) => {
 			console.error("Error sending message:", err);
 			toast.error("Error sending message check your internet connection");
 		},
 	});
 
-	// Socket event listener for new messages
+	// // Socket event listener for new messages
 	useEffect(() => {
 		const handleMessage = (msg: MessageDataType) => {
-			queryClient.setQueryData(["messages"], (oldData: QueryDataType) => ({
-				...oldData,
-				pages: oldData?.pages.map((page, idx) => (idx === 0 ? { ...page, messages: [msg, ...page.messages] } : page)),
-			}));
+			queryClient.setQueryData(["messages"], (oldData: QueryDataType | undefined) => {
+				if (!oldData) return { pages: [{ messages: [msg], nextPage: undefined }] };
+				return {
+					...oldData,
+					pages: oldData.pages.map((page, idx) => (idx === 0 ? { ...page, messages: [msg, ...page.messages] } : page)),
+				};
+			});
 		};
 
-		socket.on("chat message", handleMessage);
+		socket.on("send-message", (msg: MessageDataType) => {
+			console.log("New message received:", msg);
+
+			handleMessage(msg);
+		});
 		return () => {
-			socket.off("chat message", handleMessage);
+			socket.off("send-message", handleMessage);
 		};
 	}, [queryClient]);
 

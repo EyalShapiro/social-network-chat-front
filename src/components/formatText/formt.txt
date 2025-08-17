@@ -1,0 +1,238 @@
+import React, { useState, useRef } from 'react';
+
+const formt = [
+  { tag: 'b', formt: 'bold', char: '**' },
+  { tag: 'ins', formt: 'underline', char: '__' },
+  { tag: 'i', formt: 'italic', char: '--' },
+  { tag: 'strike', formt: 'strike', char: '~~' },
+  { tag: 'mark', formt: 'mark', char: '```' },
+];
+
+const ChatApp = () => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const inputRef = useRef(null);
+
+  const formatText = (text) => {
+    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); // ** עבור bold
+    text = text.replace(/__(.*?)__/g, '<ins>$1</ins>'); // __ עבור underline
+    text = text.replace(/--(.*?)--/g, '<strike>$1</strike>'); // -- עבור strike
+    text = text.replace(/~~(.*?)~~/g, '<i>$1</i>'); // ~~ עבור italic
+    text = text.replace(/```(.*?)```/g, '<mark>$1</mark>'); // ``` עבור mark
+
+    // Convert URLs to clickable links
+    text = text.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" style="color: blue;text-decoration: underline;">$1</a>'
+    );
+    text = text.replace(/\n/g, '<br/>');
+    return text.trime();
+  };
+
+  const handleFormat = (format, symbol) => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const selection = textarea.value.substring(start, end);
+    const formattedText = `${symbol}${selection}${symbol}`;
+
+    // במקרה שבו הסימון (כגון **) כבר נמצא סביב הטקסט הנבחר
+    if (
+      textarea.value.substring(start - symbol.length, start) === symbol &&
+      textarea.value.substring(end, end + symbol.length) === symbol
+    ) {
+      setInput(
+        (prev) =>
+          prev.substring(0, start - symbol.length) +
+          selection +
+          prev.substring(end + symbol.length)
+      );
+      textarea.setSelectionRange(start - symbol.length, end - symbol.length);
+    } else if (selection) {
+      const updatedText =
+        textarea.value.substring(0, start) +
+        formattedText +
+        textarea.value.substring(end);
+      setInput(updatedText);
+      textarea.setSelectionRange(
+        start + formattedText.length,
+        start + formattedText.length
+      );
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    // לא מבצע פעולה אם אין טקסט מסומן
+    const textarea = inputRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = textarea.value.substring(start, end);
+
+    if (e.key.includes('Enter')) {
+      if (e.shiftKey || e.ctrlKey) {
+        e.preventDefault();
+        const updatedText =
+          textarea.value.substring(0, start) +
+          '\n' +
+          textarea.value.substring(end);
+        setInput(updatedText);
+        textarea.setSelectionRange(start + 1, start + 1);
+      } else {
+        e.preventDefault();
+        return sendMessage();
+      }
+    } else {
+      switch (e.key) {
+        case '*':
+          e.preventDefault();
+          if (selection) {
+            handleFormat('bold', '**');
+          } else {
+            setInput((prv) => prv + '*');
+          }
+          break;
+        case '-':
+          e.preventDefault();
+          if (selection) {
+            handleFormat('italic', '--');
+          } else {
+            setInput((prv) => prv + '-');
+          }
+          break;
+        case '~':
+          e.preventDefault();
+          if (selection) {
+            handleFormat('strike', '~~');
+          } else {
+            setInput((prv) => prv + '~');
+          }
+          break;
+        case '_':
+          e.preventDefault();
+          if (selection) {
+            handleFormat('underline', '__');
+          } else {
+            setInput((prv) => prv + '_');
+          }
+          break;
+        case '`':
+          e.preventDefault();
+          if (selection) {
+            handleFormat('mark', '```');
+          } else {
+            setInput((prv) => prv + '`');
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  };
+
+  const sendMessage = () => {
+    if (input.trim()) {
+      setMessages((prev) => [...prev, formatText(input)]);
+      setInput('');
+    }
+  };
+
+  return (
+    <div>
+      <div
+        id="chat-box"
+        style={{
+          height: '300px',
+          overflowY: 'scroll',
+          padding: '10px',
+          border: 'blue 0.25rem solid',
+          gapY: '0.125rem',
+        }}
+      >
+        {messages.map((msg, idx) => (
+          <p
+            dir="auto"
+            key={idx}
+            style={{
+              border: '#3794ff60 0.25rem solid',
+              rotate: '0.25rem',
+              marging: '10px',
+            }}
+            dangerouslySetInnerHTML={{ __html: msg }}
+          />
+        ))}
+      </div>
+      <textarea
+        ref={inputRef}
+        rows={4}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Write a message..."
+        style={{
+          resize: 'none',
+          width: 'calc(100% - 22px)',
+          height: '50px',
+          margin: '10px 0',
+          padding: '1px',
+        }}
+        required
+        autocorrect="on"
+        spellcheck={true}
+      />
+      <div style={{ gap: '2px' }}>
+        <button
+          className="btn"
+          style={{ margin: '10px' }}
+          onClick={() => handleFormat('bold', '**')}
+        >
+          Bold- '**'
+        </button>
+        <button
+          className="btn"
+          style={{ margin: '10px' }}
+          onClick={() => handleFormat('italic', '~~')}
+        >
+          Italic-'~~'
+        </button>
+        <button
+          className="btn"
+          style={{ margin: '10px' }}
+          onClick={() => handleFormat('strike', '--')}
+        >
+          Strike-'--'
+        </button>
+        <button
+          className="btn"
+          style={{ margin: '10px' }}
+          onClick={() => handleFormat('mark', '```')}
+        >
+          Mark - '```'
+        </button>
+        <button
+          className="btn"
+          style={{ margin: '10px' }}
+          onClick={() => handleFormat('underline', '__')}
+        >
+          Underline -'__'
+        </button>
+      </div>
+      <button
+        className="btn"
+        style={{
+          border: 'green 0.25rem solid',
+          display: 'flex',
+          alignItems: 'center',
+          margin: '10px',
+        }}
+        onClick={sendMessage}
+      >
+        Send
+      </button>
+    </div>
+  );
+};
+
+export default ChatApp;
