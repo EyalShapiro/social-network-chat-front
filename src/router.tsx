@@ -1,20 +1,34 @@
+import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import Chat from "./Pages/Chat";
-import Home from "./Pages/homes";
-import NotFoundPage from "./Pages/NotFond";
-import { Suspense } from "react";
-import { Loading } from "./components/Loading/Loading";
 
-export const ROUTER = createBrowserRouter([
-	{ path: "/", element: <Home /> },
-	{ path: "/chat", element: <Chat /> },
-	{ path: "*", element: <NotFoundPage /> },
-]);
+import NotFoundPage from "./Pages/NotFond";
+import Layout from "./Pages/layout";
+import SuspenseLoading from "./Pages/layout/SuspenseLoading";
+
+const LoginPage = React.lazy(() => import("./Pages/login"));
+const Chat = React.lazy(() => import("./Pages/Chat"));
+const Home = React.lazy(() => import("./Pages/home"));
+export const ROUTER = createBrowserRouter(
+	[
+		{
+			path: "/",
+			id: "layout",
+			element: <Layout />,
+			children: [
+				{ path: "/login", element: <LoginPage /> },
+				{ index: true, element: <Home /> },
+				{ path: "/chat", element: <Chat /> },
+			],
+		},
+		{ path: "*", element: <NotFoundPage /> },
+	]
+	// { basename: import.meta.env.VITE_BASE_URL || "/" }
+);
 
 export default function AppRouter() {
 	return (
-		<Suspense fallback={<Loading />}>
+		<SuspenseLoading>
 			<RouterProvider router={ROUTER} />
-		</Suspense>
+		</SuspenseLoading>
 	);
 }

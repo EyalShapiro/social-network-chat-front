@@ -12,7 +12,9 @@ type QueryDataType = {
 	}[];
 };
 
-export const useChatSocket = () => {
+export const useChatSocket = (roomName: string) => {
+	console.log(roomName);
+
 	const queryClient = useQueryClient();
 	const limitGetItems = 100;
 

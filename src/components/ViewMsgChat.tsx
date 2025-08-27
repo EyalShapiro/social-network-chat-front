@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import styled from "styled-components";
 import { useChatSocket } from "../hook/useChatSocket";
-import { Loading } from "./Loading/Loading";
+import { Loading } from "./Loadings";
 import { formattersOptions, FormatOptionType } from "./formatText/formattersOptions";
 import { formatDate } from "@/utils/dateFormat";
 
@@ -9,10 +9,11 @@ import { formatDate } from "@/utils/dateFormat";
 // use Infinity scroll and add itm to the top of the list
 interface ChatProps {
 	username: string;
+	roomName: string;
 }
 
-export default function ViewMsgChat({ username }: ChatProps) {
-	const { messages, sendMessage, loadMoreMessages, hasMore, isLoading } = useChatSocket();
+export default function ViewMsgChat({ username, roomName }: ChatProps) {
+	const { messages, sendMessage, loadMoreMessages, hasMore, isLoading } = useChatSocket(roomName);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 	const scrollPositionRef = useRef(0);
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
