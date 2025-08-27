@@ -1,9 +1,9 @@
 import { useRef, useEffect } from "react";
-import moment from "moment";
 import styled from "styled-components";
 import { useChatSocket } from "../hook/useChatSocket";
 import { Loading } from "./Loading/Loading";
 import { formattersOptions, FormatOptionType } from "./formatText/formattersOptions";
+import { formatDate } from "@/utils/dateFormat";
 
 // change to https://mantine.dev/hooks/use-intersection/
 // use Infinity scroll and add itm to the top of the list
@@ -110,7 +110,7 @@ export default function ViewMsgChat({ username }: ChatProps) {
 								</p>
 								<div className="msgFooter">
 									<div style={{ flexGrow: 1 }} />
-									<span className="created"> {moment(msg.created_at).format("MM/DD/YYYY, HH:mm:ss")}</span>
+									<span className="created"> {formatDate(msg?.created_at, "MM/DD/YYYY, HH:mm:ss")}</span>
 								</div>
 							</Message>
 						))}

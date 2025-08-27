@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router";
 
 import ViewMsgChat from "@/components/ViewMsgChat";
-import { getUserName, removeUserName } from "@/utils/LocalStorageFunction";
+import { getUserName, removeUserName } from "@/utils/localStorageData/storageUserName";
 export default function Chat() {
 	const navigate = useNavigate();
 

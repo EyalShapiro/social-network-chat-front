@@ -1,8 +1,7 @@
+import { updateUserName } from "@/utils/localStorageData/storageUserName";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import styled from "styled-components";
-
-import { updateUserName } from "@/utils/LocalStorageFunction";
 
 const UsernameInput = () => {
 	/**

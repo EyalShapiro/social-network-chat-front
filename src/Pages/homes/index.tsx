@@ -1,4 +1,4 @@
-import UsernameInput from "@/components/UsernameInput";
+import UsernameInput from "@/Pages/homes/UsernameInput";
 
 export default function Home() {
 	return (
