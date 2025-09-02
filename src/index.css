@@ -1,60 +1,60 @@
 :root {
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-	line-height: 1.5;
-	font-weight: 400;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
 
-	padding: 1;
-	color-scheme: light dark;
-	color: rgba(255, 255, 255, 0.87);
-	background-color: #242424;
+  padding: 1;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
 
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-	background-color: rgba(50, 80, 80, 0.6);
-	scroll-behavior: smooth;
-	margin: 0;
-	display: flex;
-	place-items: center;
-	place-content: center;
-	height: 100vh;
-	width: 100vw;
+  background-color: rgba(50, 80, 80, 0.6);
+  scroll-behavior: smooth;
+  margin: 0;
+  display: flex;
+  place-items: center;
+  place-content: center;
+  height: 100vh;
+  width: 100vw;
 }
 
 @media (prefers-color-scheme: light) {
-	:root {
-		color: #213547;
-		background-color: #ffffff;
-	}
-	a:hover {
-		color: #747bff;
-	}
-	button {
-		background-color: #f9f9f9;
-	}
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
 }
 /* Demonstrate a "mostly customized" scrollbar
  * (won't be visible otherwise if width/height is specified) */
 *::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
-	border-radius: 0.25rem;
-	background: grey;
+  width: 10px;
+  height: 10px;
+  border-radius: 0.25rem;
+  background: grey;
 }
 
 /* Add a thumb */
 *::-webkit-scrollbar-thumb {
-	background: #000;
-	border-radius: 0.25rem;
-	border: 0.5px solid #123524;
+  background: #000;
+  border-radius: 0.25rem;
+  border: 0.5px solid #123524;
 }
 *::-webkit-scrollbar-thumb {
-	background: #123524cc;
+  background: #123524cc;
 }
 *::-webkit-scrollbar-thumb:hover {
-	background: #123524;
+  background: #123524;
 }

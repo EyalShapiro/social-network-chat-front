@@ -1,4 +1,4 @@
-import { IS_PROD } from "@/constants/config";
+import { IS_PROD } from '@/constants/config';
 
 /**
  * Safely parses a JSON string into an object.
@@ -11,12 +11,12 @@ import { IS_PROD } from "@/constants/config";
  * @returns {object} The parsed object if successful, otherwise an empty object.
  */
 export function parseObj(str: string) {
-	try {
-		return JSON.parse(str || "{}");
-	} catch (error) {
-		if (!IS_PROD) console.warn("Failed to parse JSON string:", error);
-		return {};
-	}
+  try {
+    return JSON.parse(str || '{}');
+  } catch (error) {
+    if (!IS_PROD) console.warn('Failed to parse JSON string:', error);
+    return {};
+  }
 }
 
 /**
@@ -30,11 +30,11 @@ export function parseObj(str: string) {
  * @returns {string} The JSON string if successful, otherwise `"{}"`.
  */
 export function stringifyObj<VT = unknown>(value: VT): string {
-	try {
-		if (!value) throw new Error("No value to stringify");
-		return JSON.stringify(value);
-	} catch (error) {
-		if (!IS_PROD) console.warn("Failed to stringify object:", error);
-		return "{}";
-	}
+  try {
+    if (!value) throw new Error('No value to stringify');
+    return JSON.stringify(value);
+  } catch (error) {
+    if (!IS_PROD) console.warn('Failed to stringify object:', error);
+    return '{}';
+  }
 }

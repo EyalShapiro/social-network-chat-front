@@ -1,7 +1,11 @@
-import AppRouter from "./router";
+import AppRouter from './router';
 
 function App() {
-	return <AppRouter />;
+  return (
+    <div onContextMenu={(e) => e.preventDefault()}>
+      <AppRouter />
+    </div>
+  );
 }
 
 export default App;
