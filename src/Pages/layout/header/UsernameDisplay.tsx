@@ -1,7 +1,7 @@
 import { LogoutButton } from '@/components/buttons';
 import { useCopyToClipboard } from '@/hook/useCopyToClipboard';
 import { useHandleLogout } from '@/hook/useHandleLogout';
-import { getUserName } from '@/utils/localStorageData/storageUserName';
+import { getUserName } from '@/utils/localStorageData/userName';
 import styled from 'styled-components';
 
 export function UsernameDisplay() {

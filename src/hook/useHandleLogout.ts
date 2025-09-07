@@ -1,4 +1,4 @@
-import { removeUserName } from '@/utils/localStorageData/storageUserName';
+import { removeUserName } from '@/utils/localStorageData/userName';
 import { useNavigate } from 'react-router';
 
 export function useHandleLogout() {

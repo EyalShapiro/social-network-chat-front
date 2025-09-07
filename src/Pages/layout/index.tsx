@@ -1,4 +1,4 @@
-import { getUserName } from '@/utils/localStorageData/storageUserName';
+import { getUserName } from '@/utils/localStorageData/userName';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { Header } from './header';
 

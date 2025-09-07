@@ -1,6 +1,6 @@
 import { SERVER_URL } from '@/constants/config';
 import { ERROR_MSG } from '@/constants/errorMsg';
-import { getUserName } from '@/utils/localStorageData/storageUserName';
+import { getUserName } from '@/utils/localStorageData/userName';
 import { toast } from 'react-toastify';
 import { io } from 'socket.io-client';
 

@@ -4,6 +4,7 @@ import { MessageDataType } from '../types/MessageDataType';
 import { getMessagesByPage, sendChatMessage } from '@/api/ChatMessage/function';
 import { useEffect } from 'react';
 import { socket } from '@/api/socket';
+import { useMutationInvalidation } from './useMutationInvalidation';
 
 type QueryDataType = {
   pages: {
@@ -18,27 +19,22 @@ export const useChatSocket = (roomName: string) => {
   const queryClient = useQueryClient();
   const limitGetItems = 100;
 
-  // Setup infinite query for messages
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, refetch } = useInfiniteQuery({
-    queryKey: ['messages'],
+    queryKey: ['messages', limitGetItems],
     queryFn: () => getMessagesByPage(limitGetItems, { pageParam: 1 }),
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 1,
   });
 
-  // Mutation for sending messages
-  const { mutate: sendMessage } = useMutation({
-    mutationFn: (msg: MessageDataType) => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] }); //todo:customize
-      return sendChatMessage(msg);
+  const { mutate: sendMessage } = useMutationInvalidation(
+    {
+      mutationFn: (msg: MessageDataType) => {
+        sendChatMessage(msg);
+      },
     },
-    onError: (err) => {
-      console.error('Error sending message:', err);
-      toast.error('Error sending message check your internet connection');
-    },
-  });
+    ['messages']
+  );
 
-  // // Socket event listener for new messages
   useEffect(() => {
     const handleMessage = (msg: MessageDataType) => {
       queryClient.setQueryData(['messages'], (oldData: QueryDataType | undefined) => {
